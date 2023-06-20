@@ -70,6 +70,7 @@ html
       payButton.addEventListener('click', async () => {
         const customer = customerInput.value;
         const amount = amountInput.value;
+        console.log(customer, amount, selectedInvoices);
         await fetch('/payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
