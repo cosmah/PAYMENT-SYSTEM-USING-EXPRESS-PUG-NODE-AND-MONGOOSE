@@ -18,11 +18,24 @@ router.get('/customer/:name/reciepts', async(req,res) => {
     res.json(reciepts);
 })
 
+// router.post('/payment', async (req,res) => {
+//     const {customer,amount,invoiceIds} = req.body;
+//     console.log(customer, amount, invoiceIds); // Add this line to log the received data
+//     await Invoice.updateMany({_id: {$in:invoiceIds}}, {settled: true});
+//     res.sendStatus(200);
+// });
+
 router.post('/payment', async (req,res) => {
     const {customer,amount,invoiceIds} = req.body;
-    await Invoice.updateMany({_id: {$in:invoiceIds}}, {settled: true});
+    console.log(customer, amount, invoiceIds);
+    try {
+        await Invoice.updateMany({_id: {$in:invoiceIds}}, {settled: true});
+    } catch (error) {
+        console.error(error); // Log any errors that are caught
+    }
     res.sendStatus(200);
 });
+
 
 router.get('/customer/:name', async (req, res) => {
     const { name } = req.params;

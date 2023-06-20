@@ -7,14 +7,6 @@ const routes = require('./routes');
 const config = require("./Config/database")
 
 
-// mongoose.connect('mongodb://0.0.0.0:27017/payment-system', {useNewUrlParser: true, useUnifiedTopology: true});
-
-// // support parsing of application/json type post data
-// app.use(bodyParser.json());
-
-// //support parsing of application/x-www-form-urlencoded post data
-// app.use(bodyParser.urlencoded({ extended: true }));
-
 
 //creating a connection between a controller and the database using mongoose middleware
 mongoose.connect(config.database,{

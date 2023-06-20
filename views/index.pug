@@ -17,63 +17,67 @@ html
     input#amount(type='number')
     button#pay Pay
 
-    script.
-      const customerInput = document.querySelector('#customer');
-      const suggestionsList = document.querySelector('#suggestions');
-      const invoicesTable = document.querySelector('#invoices tbody');
-      const amountInput = document.querySelector('#amount');
-      const payButton = document.querySelector('#pay');
+script.
+  const customerInput = document.querySelector('#customer');
+  const suggestionsList = document.querySelector('#suggestions');
+  const invoicesTable = document.querySelector('#invoices tbody');
+  const amountInput = document.querySelector('#amount');
+  const payButton = document.querySelector('#pay');
 
-      let selectedInvoices = [];
+  let selectedInvoices = [];
 
-      customerInput.addEventListener('input', async () => {
-        const response = await fetch('/customers');
-        const customers = await response.json();
-        suggestionsList.innerHTML = '';
-        customers.forEach(customer => {
-          if (customer.startsWith(customerInput.value)) {
-            const suggestion = document.createElement('li');
-            suggestion.textContent = customer;
-            suggestion.addEventListener('click', () => {
-              customerInput.value = customer;
-              suggestionsList.innerHTML = '';
-              loadInvoices(customer);
-            });
-            suggestionsList.appendChild(suggestion);
-          }
+  customerInput.addEventListener('input', async () => {
+    const response = await fetch('/customers');
+    const customers = await response.json();
+    suggestionsList.innerHTML = '';
+    customers.forEach(customer => {
+      if (customer.startsWith(customerInput.value)) {
+        const suggestion = document.createElement('li');
+        suggestion.textContent = customer;
+        suggestion.addEventListener('click', () => {
+          customerInput.value = customer;
+          suggestionsList.innerHTML = '';
+          loadInvoices(customer);
+          console.log(customer); // added console.log here
         });
-      });
-
-      async function loadInvoices(customer) {
-        const response = await fetch(`/customer/${customer}`);
-        const invoices = await response.json();
-        invoicesTable.innerHTML = '';
-        invoices.forEach(invoice => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${invoice._id}</td>
-            <td>${invoice.amount}</td>
-          `;
-          row.addEventListener('click', () => {
-            if (row.classList.contains('selected')) {
-              row.classList.remove('selected');
-              selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
-            } else {
-              row.classList.add('selected');
-              selectedInvoices.push(invoice._id);
-            }
-          });
-          invoicesTable.appendChild(row);
-        });
+        suggestionsList.appendChild(suggestion);
       }
+    });
+  });
 
-      payButton.addEventListener('click', async () => {
-        const customer = customerInput.value;
-        const amount = amountInput.value;
-        await fetch('/payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customer, amount, invoiceIds: selectedInvoices })
-        });
-        loadInvoices(customer);
+  async function loadInvoices(customer) {
+    const response = await fetch(`/customer/${customer}`);
+    const invoices = await response.json();
+    invoicesTable.innerHTML = '';
+    invoices.forEach(invoice => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${invoice._id}</td>
+        <td>${invoice.amount}</td>
+      `;
+      row.addEventListener('click', () => {
+        if (row.classList.contains('selected')) {
+          row.classList.remove('selected');
+          selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
+        } else {
+          row.classList.add('selected');
+          selectedInvoices.push(invoice._id);
+        }
       });
+      invoicesTable.appendChild(row);
+    });
+    console.log(invoices); // added console.log here
+  }
+
+  payButton.addEventListener('click', async () => {
+    const customer = customerInput.value;
+    const amount = amountInput.value;
+    console.log(amount); // Add this line to log the value of amount
+    await fetch('/payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customer, amount, invoiceIds: selectedInvoices })
+    });
+    loadInvoices(customer);
+    console.log(customer, amount, selectedInvoices); // added console.log here
+  });
