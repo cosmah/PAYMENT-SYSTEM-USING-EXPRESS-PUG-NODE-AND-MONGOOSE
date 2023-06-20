@@ -1,0 +1,12 @@
+doctype html
+html
+  head
+    title New Invoice
+  body
+    h1 New Invoice
+    form(action='/invoice' method='post')
+      label(for='customer') Customer:
+      input#customer(type='text' name='customer')
+      label(for='amount') Amount:
+      input#amount(type='number' name='amount')
+      button#submit(type='submit') Submit

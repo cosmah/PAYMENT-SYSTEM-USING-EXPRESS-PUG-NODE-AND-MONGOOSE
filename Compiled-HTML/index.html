@@ -1,0 +1,57 @@
+<!DOCTYPE html ><html> <head> <title>Payment System </title></head><body> <h1>Payment System </h1><label for="customer">Customer: </label><input id="customer" type="text" placeholder="Enter customer name"/><ul id="suggestions"> </ul><table id="invoices"> <thead> <tr> <th>Invoice ID </th><th>Amount </th></tr></thead><tbody> <label for="amount">Payment Amount: </label><input id="amount" type="number"/><button id="pay">Pay </button></tbody></table></body><script>const customerInput = document.querySelector('#customer');
+const suggestionList = document.querySelector('#suggestions');
+const invoicesTable = document.querySelector('#invoice tbody');
+const amountInput = document.querySelector('#amount');
+const payButton = document.querySelector('#pay');
+
+let selectedInvoices = [];
+
+customerInput.addEventListener('input', async() => {
+    const response = await fetch('/customers');
+    const customers = await response.json();
+    suggestionsList.innerHTML = '';
+    customers.forEach(customer => {
+        if(customer.startWith(customerInput.value)){
+            const suggestion = document.createElement('li');
+            suggestion.textContent = customer;
+            suggestion.addEventListener('click', () => {
+                customerInput.value = customer;
+                loadInvoices(customer);
+            });
+            suggestionsList.appendChild(suggestion);
+        }
+    });
+});
+
+async function loadInvoices(customers){
+    const response = await fetch(`customer/${customer}`);
+    const invoices = await response.json();
+    invoicesTable.innerHTML = '';
+    invoices.forEach(invoice => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${invoice._id}</td>
+            <td>${invoice.amount}</td>
+            `;
+            row.addEventListener('click', () => {
+                if (row.classList.contains('selected')) {
+                    selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
+                }else{
+                    row.classList.add('selected');
+                    selectedInvoices.push(invoice._id);
+                }
+            });
+            invoicesTable.appendChild(row);
+        });
+}
+
+payButton.addEventListene('click', async () => {
+    const customer = customerInput.value;
+    const amount = amountInput.value;
+    await fetch('/payment', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({customer,amount,invoiceIds:selectedInvoices })
+    });
+    loadInvoices(customer);
+});</script></html>
