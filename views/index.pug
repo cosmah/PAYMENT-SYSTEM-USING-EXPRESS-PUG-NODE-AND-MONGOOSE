@@ -4,18 +4,19 @@ html
     title Payment System
   body
     h1 Payment System
-    label(for='customer') Customer:
-    input#customer(type='text' placeholder='Enter customer name')
-    ul#suggestions
-    table#invoices
-      thead
-        tr
-          th Invoice ID
-          th Amount
-      tbody
-    label(for='amount') Payment Amount:
-    input#amount(type='number')
-    button#pay Pay
+    form(action='/payment' method='POST')
+      label(for='customer') Customer:
+      input#customer(type='text' placeholder='Enter customer name')
+      ul#suggestions
+      table#invoices
+        thead
+          tr
+            th Invoice ID
+            th Amount
+        tbody
+      label(for='amount') Payment Amount:
+      input#amount(type='number')
+      button#pay(type='submit') Pay
 
 script.
   const customerInput = document.querySelector('#customer');
@@ -50,26 +51,29 @@ script.
     const invoices = await response.json();
     invoicesTable.innerHTML = '';
     invoices.forEach(invoice => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${invoice._id}</td>
-        <td>${invoice.amount}</td>
-      `;
-      row.addEventListener('click', () => {
-        if (row.classList.contains('selected')) {
-          row.classList.remove('selected');
-          selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
-        } else {
-          row.classList.add('selected');
-          selectedInvoices.push(invoice._id);
-        }
-      });
-      invoicesTable.appendChild(row);
+      if (!invoice.settled) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${invoice._id}</td>
+          <td>${invoice.amount}</td>
+        `;
+        row.addEventListener('click', () => {
+          if (row.classList.contains('selected')) {
+            row.classList.remove('selected');
+            selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
+          } else {
+            row.classList.add('selected');
+            selectedInvoices.push(invoice._id);
+          }
+        });
+        invoicesTable.appendChild(row);
+      }
     });
-    console.log(invoices); // added console.log here
   }
 
-  payButton.addEventListener('click', async () => {
+
+  payButton.addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the default form submission
     const customer = customerInput.value;
     const amount = amountInput.value;
     console.log(amount); // Add this line to log the value of amount
@@ -80,4 +84,7 @@ script.
     });
     loadInvoices(customer);
     console.log(customer, amount, selectedInvoices); // added console.log here
+    customerInput.value = ''; // Reset customer input value
+    amountInput.value = ''; // Reset amount input value
+    selectedInvoices = []; // Clear selected invoices
   });

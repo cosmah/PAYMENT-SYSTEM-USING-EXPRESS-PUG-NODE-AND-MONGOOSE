@@ -11,19 +11,18 @@ router.get('/customers', async (req,res) => {
     res.json(customers);
 });
 
-router.get('/customer/:name/reciepts', async(req,res) => {
-    const {name} = req.params;
-    const reciepts = await Invoice.find({
-        customer: name, settled:true});
-    res.json(reciepts);
-})
-
-// router.post('/payment', async (req,res) => {
-//     const {customer,amount,invoiceIds} = req.body;
-//     console.log(customer, amount, invoiceIds); // Add this line to log the received data
-//     await Invoice.updateMany({_id: {$in:invoiceIds}}, {settled: true});
-//     res.sendStatus(200);
-// });
+// router.get('/customer/:name/reciepts', async(req,res) => {
+//     const {name} = req.params;
+//     const reciepts = await Invoice.find({
+//         customer: name, settled:true});
+//     res.json(reciepts);
+// })
+router.get('/customer/:name/receipts', async(req, res) => {
+    const { name } = req.params;
+    const receipts = await Invoice.find({ customer: name, settled: false }); // Only retrieve unsettled receipts
+    res.json(receipts);
+  });
+  
 
 router.post('/payment', async (req,res) => {
     const {customer,amount,invoiceIds} = req.body;
