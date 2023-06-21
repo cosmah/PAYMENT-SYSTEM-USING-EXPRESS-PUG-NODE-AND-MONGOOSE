@@ -6,7 +6,7 @@ html
     h1 Payment System
     form(action='/payment' method='POST')
       label(for='customer') Customer:
-      input#customer(type='text' placeholder='Enter customer name')
+      input#customer(type='text' name='customer' placeholder='Enter customer name')
       ul#suggestions
       table#invoices
         thead
@@ -15,8 +15,9 @@ html
             th Amount
         tbody
       label(for='amount') Payment Amount:
-      input#amount(type='number')
+      input#amount(type='number' name='amount')
       button#pay(type='submit') Pay
+
 
 script.
   const customerInput = document.querySelector('#customer');
@@ -31,7 +32,7 @@ script.
     const response = await fetch('/customers');
     const customers = await response.json();
     suggestionsList.innerHTML = '';
-    customers.forEach(customer => {
+    customers.forEach((customer) => {
       if (customer.startsWith(customerInput.value)) {
         const suggestion = document.createElement('li');
         suggestion.textContent = customer;
@@ -47,7 +48,7 @@ script.
   });
 
   async function loadInvoices(customer) {
-    const response = await fetch(`/customer/${customer}`);
+    const response = await fetch(`/customer/${customer}/reciepts`); // Update the API endpoint
     const invoices = await response.json();
     invoicesTable.innerHTML = '';
     invoices.forEach(invoice => {
@@ -56,35 +57,36 @@ script.
         row.innerHTML = `
           <td>${invoice._id}</td>
           <td>${invoice.amount}</td>
+          <td><input type="checkbox" data-invoice-id="${invoice._id}"></td>
         `;
-        row.addEventListener('click', () => {
-          if (row.classList.contains('selected')) {
-            row.classList.remove('selected');
-            selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
-          } else {
-            row.classList.add('selected');
-            selectedInvoices.push(invoice._id);
-          }
-        });
         invoicesTable.appendChild(row);
       }
     });
+    selectedInvoices = []; // Reset the selectedInvoices array
   }
 
 
-  payButton.addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent the default form submission
+
+  payButton.addEventListener('click', async () => {
     const customer = customerInput.value;
     const amount = amountInput.value;
     console.log(amount); // Add this line to log the value of amount
-    await fetch('/payment', {
+
+    const selectedInvoiceCheckboxes = Array.from(invoicesTable.querySelectorAll('input[type="checkbox"]:checked'));
+    const invoiceIds = selectedInvoiceCheckboxes.map(checkbox => checkbox.dataset.invoiceId);
+
+    console.log('Invoice IDs:', invoiceIds); // Add this line to log the invoice IDs
+
+    const response = await fetch('/payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customer, amount, invoiceIds: selectedInvoices })
+      body: JSON.stringify({ customer, amount, invoiceIds })
     });
-    loadInvoices(customer);
-    console.log(customer, amount, selectedInvoices); // added console.log here
-    customerInput.value = ''; // Reset customer input value
-    amountInput.value = ''; // Reset amount input value
-    selectedInvoices = []; // Clear selected invoices
+
+    if (response.ok) {
+      console.log('Payment successful');
+      loadInvoices(customer);
+    } else {
+      console.error('Payment failed');
+    }
   });

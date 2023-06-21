@@ -18,7 +18,6 @@ customerInput.addEventListener('input', async () => {
         customerInput.value = customer;
         suggestionsList.innerHTML = '';
         loadInvoices(customer);
-        console.log(customer); // added console.log here
       });
       suggestionsList.appendChild(suggestion);
     }
@@ -26,44 +25,56 @@ customerInput.addEventListener('input', async () => {
 });
 
 async function loadInvoices(customer) {
-  const response = await fetch(`/customer/${customer}`);
+  const response = await fetch(`/customer/${customer}/reciepts`);
   const invoices = await response.json();
   invoicesTable.innerHTML = '';
   invoices.forEach(invoice => {
-    if (!invoice.settled) {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${invoice._id}</td>
-        <td>${invoice.amount}</td>
-      `;
-      row.addEventListener('click', () => {
-        if (row.classList.contains('selected')) {
-          row.classList.remove('selected');
-          selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
-        } else {
-          row.classList.add('selected');
-          selectedInvoices.push(invoice._id);
-        }
-      });
-      invoicesTable.appendChild(row);
-    }
+    const remainingAmount = invoice.amount - getPreviousPayments(invoice._id);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${invoice._id}</td>
+      <td>${remainingAmount}</td>
+    `;
+    row.addEventListener('click', () => {
+      if (row.classList.contains('selected')) {
+        row.classList.remove('selected');
+        selectedInvoices.splice(selectedInvoices.indexOf(invoice._id), 1);
+      } else {
+        row.classList.add('selected');
+        selectedInvoices.push(invoice._id);
+      }
+    });
+    invoicesTable.appendChild(row);
   });
 }
 
+function getPreviousPayments(invoiceId) {
+  const previousPayments = JSON.parse(localStorage.getItem('payments')) || {};
+  return previousPayments[invoiceId] || 0;
+}
 
 payButton.addEventListener('click', async (event) => {
   event.preventDefault(); // Prevent the default form submission
   const customer = customerInput.value;
   const amount = amountInput.value;
   console.log(amount); // Add this line to log the value of amount
+
+  const previousPayments = JSON.parse(localStorage.getItem('payments')) || {};
+  selectedInvoices.forEach(invoiceId => {
+    previousPayments[invoiceId] = (previousPayments[invoiceId] || 0) + Number(amount);
+  });
+  localStorage.setItem('payments', JSON.stringify(previousPayments));
+
   await fetch('/payment', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ customer, amount, invoiceIds: selectedInvoices })
   });
-  loadInvoices(customer);
-  console.log(customer, amount, selectedInvoices); // added console.log here
   customerInput.value = ''; // Reset customer input value
   amountInput.value = ''; // Reset amount input value
   selectedInvoices = []; // Clear selected invoices
+
+  // Fetch and load the invoices again
+  loadInvoices(customer);
+  console.log(customer, amount, selectedInvoices); // added console.log here
 });</script>
