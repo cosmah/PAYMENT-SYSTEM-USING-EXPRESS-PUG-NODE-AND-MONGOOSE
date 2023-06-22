@@ -18,12 +18,6 @@ router.get('/customer/:name/reciepts', async(req,res) => {
     res.json(reciepts);
 })
 
-// router.post('/payment', async (req,res) => {
-//     const {customer,amount,invoiceIds} = req.body;
-//     console.log(customer, amount, invoiceIds); // Add this line to log the received data
-//     await Invoice.updateMany({_id: {$in:invoiceIds}}, {settled: true});
-//     res.sendStatus(200);
-// });
 
 router.post('/payment', async (req,res) => {
     const {customer,amount,invoiceIds} = req.body;
