@@ -3,6 +3,8 @@ const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
 const routes = require('./routes');
+const routes2 = require('./routes2');
+const routes3 = require('./routes3');
 
 const config = require("./Config/database")
 
@@ -31,7 +33,10 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
-app.use(routes)
+//routes
+app.use(routes);
+app.use(routes2);
+app.use(routes3);
 
 app.listen(3000, () => {
     console.log('Listening at port 3000 "http://localhost:3000/"');

@@ -20,9 +20,9 @@ router.get('/customer/:name/receipts', async (req, res) => {
 
 
 router.post('/payment', async (req, res) => {
+  console.log('Payment route called');
   const { customer, amount, invoiceIds } = req.body;
-  console.log(customer, amount, invoiceIds);
-
+  console.log('Received data:', { customer, amount, invoiceIds });
   try {
     await Invoice.updateMany(
       { _id: { $in: invoiceIds }, settled: false },

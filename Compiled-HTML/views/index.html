@@ -1,39 +1,36 @@
-<!DOCTYPE html><html><head><title>Payment System</title></head><body><h1>Payment System</h1><form action="/payment" method="POST"><label for="customer">Customer:</label><input id="customer" type="text" placeholder="Enter customer name"><ul id="suggestions"></ul><table id="invoices"><thead><tr><th>Invoice ID</th><th>Amount</th></tr></thead><tbody></tbody></table><label for="amount">Payment Amount:</label><input id="amount" type="number"><button id="pay" type="submit">Pay</button></form></body></html><script>const customerInput = document.querySelector('#customer');
+<!DOCTYPE html><head><title>Payment System</title></head><h1>Payment System</h1><form action="/payment" method="post"><label for="customer">Customer:</label><input id="customer" type="text" placeholder="Enter customer name"><ul id="suggestions"></ul><table id="invoices"><thead><tr><th>Invoice ID</th><th>Amount</th></tr></thead><tbody></tbody></table><label for="amount">Payment Amount:</label><input id="amount" type="number"><button id="pay" type="submit">Pay</button></form><script>const customerInput = document.querySelector('#customer');
 const suggestionsList = document.querySelector('#suggestions');
 const invoicesTable = document.querySelector('#invoices tbody');
 const amountInput = document.querySelector('#amount');
 const payButton = document.querySelector('#pay');
-
 let selectedInvoices = [];
-
 customerInput.addEventListener('input', async () => {
   const response = await fetch('/customers');
   const customers = await response.json();
   suggestionsList.innerHTML = '';
   customers.forEach(customer => {
-    if (customer.startsWith(customerInput.value)) {
-      const suggestion = document.createElement('li');
-      suggestion.textContent = customer;
-      suggestion.addEventListener('click', () => {
-        customerInput.value = customer;
-        suggestionsList.innerHTML = '';
-        loadInvoices(customer);
-      });
-      suggestionsList.appendChild(suggestion);
-    }
+  if (customer.startsWith(customerInput.value)) {
+  const suggestion = document.createElement('li');
+  suggestion.textContent = customer;
+  suggestion.addEventListener('click', () => {
+  customerInput.value = customer;
+  suggestionsList.innerHTML = '';
+  loadInvoices(customer);
+  });
+  suggestionsList.appendChild(suggestion);
+  }
   });
 });
 
 async function loadInvoices(customer) {
-  const response = await fetch(`/customer/${customer}/reciepts`);
+  const response = await fetch(`/customer/${customer}/receipts`);
   const invoices = await response.json();
   invoicesTable.innerHTML = '';
   invoices.forEach(invoice => {
-    const remainingAmount = invoice.amount - getPreviousPayments(invoice._id);
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${invoice._id}</td>
-      <td>${remainingAmount}</td>
+      <td>${invoice.amount}</td>
     `;
     row.addEventListener('click', () => {
       if (row.classList.contains('selected')) {
@@ -48,33 +45,19 @@ async function loadInvoices(customer) {
   });
 }
 
-function getPreviousPayments(invoiceId) {
-  const previousPayments = JSON.parse(localStorage.getItem('payments')) || {};
-  return previousPayments[invoiceId] || 0;
-}
-
 payButton.addEventListener('click', async (event) => {
-  event.preventDefault(); // Prevent the default form submission
+  event.preventDefault(); // Prevent form submission
+  console.log('Pay button clicked');
   const customer = customerInput.value;
   const amount = amountInput.value;
-  console.log(amount); // Add this line to log the value of amount
-
-  const previousPayments = JSON.parse(localStorage.getItem('payments')) || {};
-  selectedInvoices.forEach(invoiceId => {
-    previousPayments[invoiceId] = (previousPayments[invoiceId] || 0) + Number(amount);
-  });
-  localStorage.setItem('payments', JSON.stringify(previousPayments));
-
+  console.log('Sending data:', { customer, amount, invoiceIds: selectedInvoices });
   await fetch('/payment', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ customer, amount, invoiceIds: selectedInvoices })
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ customer, amount, invoiceIds: selectedInvoices }),
   });
-  customerInput.value = ''; // Reset customer input value
-  amountInput.value = ''; // Reset amount input value
-  selectedInvoices = []; // Clear selected invoices
-
-  // Fetch and load the invoices again
+  console.log('Data sent');
   loadInvoices(customer);
-  console.log(customer, amount, selectedInvoices); // added console.log here
 });</script>
